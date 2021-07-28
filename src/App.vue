@@ -15,7 +15,7 @@
 
     <!--Firebaseから取得したリストを描画（トランジション付き）-->
     <transition-group name="chat" tag="div" class="list content">
-      <section v-for="{ key, name, image, message } in chat" :key="key" class="item">
+      <section v-for="{ authorId, postId, name, image, message } in chat" v-bind:class="[authorId === user.uid ? activeClass : '']" :key="postId" class="item">
         <div class="item-image"><img :src="image" width="40" height="40"></div>
         <div class="item-detail">
           <div class="item-name">{{ name }}</div>
@@ -66,17 +66,12 @@ export default {
   created() {
     firebase.auth().onAuthStateChanged(user => {
       this.user = user ? user : {}
-      db.collection('messages').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-        const messages = snapshot.docs.map((doc) => doc.data);
-        snapshot.docChanges().forEach((changes) => {console.log(changes.doc)})
+      db.collection('messages').orderBy('createdAt', 'asc').onSnapshot((snapshot) => {
+        const messages = snapshot.docs.map((doc) => doc.data());
+        
       if (user) {
         this.chat = []
-        console.log(snapshot)
-        this.chat.push({
-        name: messages.name,
-        image: messages.image,
-        message: messages.message
-      })
+        this.chat = messages
       this.scrollBottom()
         // message に変更があったときのハンドラを登録
         // this.childAdded(doc.docChanges())
@@ -119,7 +114,15 @@ export default {
     },
     doSend() {
       if (this.user.uid && this.input.length) {
+        const S =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const N = 16;
+        const randomChar = Array.from(crypto.getRandomValues(new Uint32Array(N)))
+        .map((n) => S[n % S.length])
+        .join("");
         db.collection('messages').add({
+          authorId: this.user.uid,
+          postId: randomChar,
           message: this.input,
           name: this.user.displayName,
           image: this.user.photoURL,

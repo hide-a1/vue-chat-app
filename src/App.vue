@@ -40,8 +40,6 @@
 <script>
 // firebase モジュール
 import firebase from 'firebase'
-// 改行を <br> タグに変換するモジュール
-// import Nl2br from 'vue-nl2br'
 const config = {
   apiKey: "AIzaSyAZRyPO91_W3bL6vXXbpa6dzsH8fd_Vuo4",
   authDomain: "vue-chat-96ccf.firebaseapp.com",
@@ -72,13 +70,9 @@ export default {
       if (user) {
         this.chat = []
         this.chat = messages
-      this.scrollBottom()
-        // message に変更があったときのハンドラを登録
-        // this.childAdded(doc.docChanges())
+        this.scrollBottom()
       } else {
         this.chat = []
-        // message に変更があったときのハンドラを解除
-        // doc.limitToLast(10).off('child_added', this.childAdded)
       }
       })
       
@@ -100,18 +94,6 @@ export default {
         window.scrollTo(0, document.body.clientHeight)
       })
     },
-    // 受け取ったメッセージをchatに追加
-    // データベースに新しい要素が追加されると随時呼び出される
-    childAdded(snap) {
-      const message = snap.val()
-      this.chat.push({
-        key: snap.key,
-        name: message.name,
-        image: message.image,
-        message: message.message
-      })
-      this.scrollBottom()
-    },
     doSend() {
       if (this.user.uid && this.input.length) {
         const S =
@@ -132,14 +114,6 @@ export default {
           console.log()
           this.input = ''
         })
-        // // firebase にメッセージを追加
-        // firebase.database().ref('message').push({
-        //   message: this.input,
-        //   name: this.user.displayName,
-        //   image: this.user.photoURL
-        // }, () => {
-        //   this.input = '' // フォームを空にする
-        // })
       }
     }
   }

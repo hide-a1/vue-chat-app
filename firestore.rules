@@ -5,8 +5,8 @@ service cloud.firestore {
       return request.auth.uid != null;
     }
     match /messages/{postId} {
-      allow read: isSignIn();
-      allow write: request.auth.uid === resource.data.authorId;
+      allow read: if isSignIn();
+      allow write: if request.auth.uid == resource.data.authorId;
     }
   }
 }

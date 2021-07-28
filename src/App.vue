@@ -2,21 +2,29 @@
   <div id="app">
     <header class="header">
       <h1>Chat</h1>
-      <!-- ログイン時にはフォームとログアウトボタンを表示 -->
-      <div v-if="user.uid" key="login">
-        [{{ user.displayName }}]
-        <button type="button" @click="doLogout">ログアウト</button>
-      </div>
-      <!-- 未ログイン時にはログインボタンを表示 -->
-      <div v-else key="logout">
-        <button type="button" @click="doLogin">ログイン</button>
+      <div v-if="user">
+        <!-- ログイン時にはフォームとログアウトボタンを表示 -->
+        <div v-if="user.uid" key="login">
+          [{{ user.displayName }}]
+          <button type="button" @click="doLogout">ログアウト</button>
+        </div>
+        <!-- 未ログイン時にはログインボタンを表示 -->
+        <div v-else key="logout">
+          <button type="button" @click="doLogin">ログイン</button>
+        </div>
       </div>
     </header>
 
     <!--Firebaseから取得したリストを描画（トランジション付き）-->
     <transition-group name="chat" tag="div" class="list content">
-      <section v-for="{ postId, name, image, message } in chat" :key="postId" class="item">
-        <div class="item-image"><img :src="image" width="40" height="40"></div>
+      <section
+        v-for="{ postId, name, image, message } in chat"
+        :key="postId"
+        class="item"
+      >
+        <div class="item-image">
+          <img :src="image" width="40" height="40" />
+        </div>
         <div class="item-detail">
           <div class="item-name">{{ name }}</div>
           <div class="item-message" :text="message">
@@ -25,23 +33,26 @@
         </div>
       </section>
     </transition-group>
-  
+
     <!-- 入力フォーム -->
     <form action="" @submit.prevent="doSend" class="form">
       <textarea
         v-model="input"
         :disabled="!user.uid"
-        @keydown.enter.exact.prevent="doSend"></textarea>
-      <button type="submit" :disabled="!user.uid" class="send-button">Send</button>
+        @keydown.enter.exact.prevent="doSend"
+      ></textarea>
+      <button type="submit" :disabled="!user.uid" class="send-button">
+        Send
+      </button>
     </form>
   </div>
 </template>
 
 <script>
 // firebase モジュール
-import firebase from 'firebase/app'
-import 'firebase/firestore';
-import 'firebase/auth';
+import firebase from "firebase/app";
+import "firebase/firestore";
+import "firebase/auth";
 const config = {
   apiKey: "AIzaSyAZRyPO91_W3bL6vXXbpa6dzsH8fd_Vuo4",
   authDomain: "vue-chat-96ccf.firebaseapp.com",
@@ -55,71 +66,76 @@ const config = {
 firebase.initializeApp(config);
 const db = firebase.firestore();
 export default {
-  components: {  },
+  components: {},
   data() {
     return {
-      user: {},  // ユーザー情報
-      chat: [],  // 取得したメッセージを入れる配列
-      input: ''  // 入力したメッセージ
-    }
+      user: {}, // ユーザー情報
+      chat: [], // 取得したメッセージを入れる配列
+      input: "", // 入力したメッセージ
+    };
   },
   created() {
-    firebase.auth().onAuthStateChanged(user => {
-      this.user = user ? user : {}
-      db.collection('messages').orderBy('createdAt', 'asc').onSnapshot((snapshot) => {
-        const messages = snapshot.docs.map((doc) => doc.data());
-        
-      if (user) {
-        this.chat = []
-        this.chat = messages
-        this.scrollBottom()
-      } else {
-        this.chat = []
-      }
-      })
-      
-    })
+    firebase.auth().onAuthStateChanged((user) => {
+      this.user = user ? user : {};
+      db.collection("messages")
+        .orderBy("createdAt", "asc")
+        .onSnapshot((snapshot) => {
+          const messages = snapshot.docs.map((doc) => doc.data());
+
+          if (user) {
+            this.chat = [];
+            this.chat = messages;
+            this.scrollBottom();
+          } else {
+            this.chat = [];
+          }
+        });
+    });
   },
-    methods: {
+  methods: {
     // ログイン処理
     doLogin() {
-      const provider = new firebase.auth.GoogleAuthProvider()
-      firebase.auth().signInWithPopup(provider)
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider);
     },
     // ログアウト処理
     doLogout() {
-      firebase.auth().signOut()
+      firebase.auth().signOut();
     },
     // スクロール位置を一番下に移動
     scrollBottom() {
       this.$nextTick(() => {
-        window.scrollTo(0, document.body.clientHeight)
-      })
+        window.scrollTo(0, document.body.clientHeight);
+      });
     },
     doSend() {
       if (this.user.uid && this.input.length) {
         const S =
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         const N = 16;
-        const randomChar = Array.from(crypto.getRandomValues(new Uint32Array(N)))
-        .map((n) => S[n % S.length])
-        .join("");
-        db.collection('messages').add({
-          authorId: this.user.uid,
-          postId: randomChar,
-          message: this.input,
-          name: this.user.displayName,
-          image: this.user.photoURL,
-          createdAt: firebase.firestore.Timestamp.now(),
-        }).then((doc) => {
-          doc.onSnapshot()
-          console.log()
-          this.input = ''
-        })
+        const randomChar = Array.from(
+          crypto.getRandomValues(new Uint32Array(N))
+        )
+          .map((n) => S[n % S.length])
+          .join("");
+        db.collection("messages")
+          .add({
+            authorId: this.user.uid,
+            postId: randomChar,
+            message: this.input,
+            name: this.user.displayName,
+            image: this.user.photoURL,
+            createdAt: firebase.firestore.Timestamp.now(),
+          })
+          .then((doc) => {
+            doc.onSnapshot();
+            console.log();
+            this.input = "";
+          });
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style>

@@ -15,7 +15,7 @@
 
     <!--Firebaseから取得したリストを描画（トランジション付き）-->
     <transition-group name="chat" tag="div" class="list content">
-      <section v-for="{ authorId, postId, name, image, message } in chat" v-bind:class="[authorId === user.uid ? activeClass : '']" :key="postId" class="item">
+      <section v-for="{ postId, name, image, message } in chat" :key="postId" class="item">
         <div class="item-image"><img :src="image" width="40" height="40"></div>
         <div class="item-detail">
           <div class="item-name">{{ name }}</div>
@@ -39,7 +39,9 @@
 
 <script>
 // firebase モジュール
-import firebase from 'firebase'
+import firebase from 'firebase/app'
+import 'firebase/firestore';
+import 'firebase/auth';
 const config = {
   apiKey: "AIzaSyAZRyPO91_W3bL6vXXbpa6dzsH8fd_Vuo4",
   authDomain: "vue-chat-96ccf.firebaseapp.com",
